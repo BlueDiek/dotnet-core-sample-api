@@ -1,0 +1,16 @@
+﻿using System;
+
+namespace Consulting.Domain.Models
+{
+    public class Item
+    {
+        public int Id { get; set; }
+        public string Event { get; set; }
+        public DateTime? Timestamp { get; set; }
+
+        public Item()
+        {
+            this.Timestamp = DateTime.Now;
+        }
+    }
+}

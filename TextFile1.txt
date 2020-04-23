@@ -1,0 +1,1178 @@
+-- DROP ALL ---
+/*
+-- Tables --
+
+DROP TABLE public.person;
+DROP TABLE public.userweb;
+DROP TABLE public.question_value;
+DROP TABLE public.form_question;
+DROP TABLE public.form;
+DROP TABLE public.question;
+DROP TABLE public.question_type;
+
+-- Functions --
+
+DROP FUNCTION public.FRQ_insert_user(uuid, character varying);
+DROP FUNCTION public.FRQ_update_user(integer, uuid, character varying);
+DROP FUNCTION public.FRQ_delete_user(integer);
+DROP FUNCTION public.FRQ_get_user(integer);
+DROP FUNCTION public.FRQ_get_user(uuid);
+
+DROP FUNCTION public.FRQ_insert_person(integer, character varying);
+DROP FUNCTION public.FRQ_update_person(integer, integer, character varying);
+DROP FUNCTION public.FRQ_delete_person(integer);
+DROP FUNCTION public.FRQ_get_person(integer);
+DROP FUNCTION public.FRQ_get_person_by_user(integer);
+
+DROP FUNCTION public.FRQ_insert_form(character varying, character varying);
+DROP FUNCTION public.FRQ_update_form(integer, character varying, character varying);
+DROP FUNCTION public.FRQ_delete_form(integer);
+DROP FUNCTION public.FRQ_get_form(integer);
+DROP FUNCTION public.FRQ_get_forms();
+
+DROP FUNCTION public.frq_insert_questiontype(character varying, character varying);
+DROP FUNCTION public.frq_update_questiontype(integer, character varying, character varying);
+DROP FUNCTION public.FRQ_delete_questiontype(integer);
+DROP FUNCTION public.FRQ_get_questiontype(integer);
+DROP FUNCTION public.FRQ_get_questiontypes();
+
+DROP FUNCTION public.FRQ_insert_question(integer, character varying, character varying);
+DROP FUNCTION public.FRQ_update_question(integer, integer, character varying, character varying);
+DROP FUNCTION public.FRQ_delete_question(integer);
+DROP FUNCTION public.FRQ_get_question(integer);
+DROP FUNCTION public.FRQ_get_questions();
+
+DROP FUNCTION public.FRQ_insert_questionvalue(integer, character varying, character varying, integer);
+DROP FUNCTION public.FRQ_update_questionvalue(integer, integer, character varying, character varying, integer);
+DROP FUNCTION public.FRQ_delete_questionvalue(integer);
+DROP FUNCTION public.FRQ_get_questionvalue(integer);
+DROP FUNCTION public.FRQ_get_questionvalue_by_question(integer);
+
+DROP FUNCTION public.FRQ_insert_formquestion(integer, integer, integer, integer, integer);
+DROP FUNCTION public.FRQ_update_formquestion(integer, integer, integer, integer, integer, integer);
+DROP FUNCTION public.FRQ_delete_formquestion(integer);
+DROP FUNCTION public.FRQ_get_formquestion(integer);
+DROP FUNCTION public.FRQ_get_formquestion_by_form(integer);
+
+*/
+
+
+
+
+-----------------------------------------------------------------------------
+--                      Tables                                             --
+-----------------------------------------------------------------------------
+begin
+/*   UserWeb           */
+
+-- Table: public.userweb
+
+-- DROP TABLE public.userweb;
+
+CREATE TABLE public.userweb
+(
+    ID serial,
+    usr_uid uuid NOT NULL,
+    usr_username character varying(50) COLLATE pg_catalog.default,
+    CONSTRAINT Userweb_pkey PRIMARY KEY (ID)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.userweb
+    OWNER to brgzbqcf;
+
+/*   Person         */
+
+-- Table: public.person
+
+-- DROP TABLE public.person;
+
+CREATE TABLE public.person
+(
+    ID serial,
+    usr_id integer NOT NULL,
+    prs_reference character varying(50) COLLATE pg_catalog.default NOT NULL,
+    CONSTRAINT person_pkey PRIMARY KEY (ID),
+    CONSTRAINT FK_userweb_person FOREIGN KEY (usr_id)
+        REFERENCES public.userweb (ID) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.person
+    OWNER to brgzbqcf;
+
+/*   Form           */
+
+-- Table: public.form
+
+-- DROP TABLE public.form;
+
+CREATE TABLE public.form
+(
+    ID serial,
+    frm_name character varying(50) COLLATE pg_catalog.default NOT NULL,
+    frm_description character varying(100) COLLATE pg_catalog.default,
+    frm_active boolean NOT NULL,
+    CONSTRAINT form_pkey PRIMARY KEY (ID)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.form
+    OWNER to brgzbqcf;
+
+/*   QuestionType   */
+
+-- Table: public.question_type
+
+-- DROP TABLE public.question_type;
+
+CREATE TABLE public.question_type
+(
+    ID serial,
+    qty_name character varying(20) COLLATE pg_catalog.default NOT NULL,
+    qty_description character varying(100) COLLATE pg_catalog.default,
+    CONSTRAINT question_type_pkey PRIMARY KEY (ID)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.question_type
+    OWNER to brgzbqcf;
+
+/*   Question       */
+
+-- Table: public.question
+
+-- DROP TABLE public.question;
+
+CREATE TABLE public.question
+(
+    ID serial,
+    qty_ID integer NOT NULL,
+    que_name character varying(50) COLLATE pg_catalog.default NOT NULL,
+    que_question character varying(100) COLLATE pg_catalog.default NOT NULL,
+    CONSTRAINT question_pkey PRIMARY KEY (ID),
+    CONSTRAINT fk_question_type_question FOREIGN KEY (qty_ID)
+        REFERENCES public.question_type (ID) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.question
+    OWNER to brgzbqcf;
+
+/*   QuestionValues */
+
+-- Table: public.question_value
+
+-- DROP TABLE public.question_value;
+
+CREATE TABLE public.question_value
+(
+    ID serial,
+    que_ID integer not null,
+    val_name character varying(50) COLLATE pg_catalog.default NOT NULL,
+    val_description character varying(100) COLLATE pg_catalog.default,
+    val_value integer NOT NULL,
+    CONSTRAINT question_value_pkey PRIMARY KEY (ID),
+    CONSTRAINT FK_question_question_value FOREIGN KEY (que_ID)
+        REFERENCES public.question (ID) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.question_value
+    OWNER to brgzbqcf;
+
+/*   FormQuestion   */
+
+-- Table: public.form_question
+
+-- DROP TABLE public.form_question;
+
+CREATE TABLE public.form_question
+(
+    ID serial,
+    frm_id integer NOT NULL ,
+    que_id integer NOT NULL,
+    frq_order integer,
+    frq_next integer,
+    frq_alternative_next integer,
+    CONSTRAINT form_question_pkey PRIMARY KEY (ID),
+    CONSTRAINT FK_form_form_question FOREIGN KEY (frm_id)
+        REFERENCES public.form (ID) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT FK_question_form_question FOREIGN KEY (que_id)
+        REFERENCES public.question (ID) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.form_question
+    OWNER to brgzbqcf;
+
+
+end 
+
+
+-----------------------------------------------------------------------------
+--                      Functions                                          --
+-----------------------------------------------------------------------------
+begin 
+
+/***********************************************/
+/*                      Userweb                */
+/***********************************************/
+
+------------------------INSERT------------------------
+
+-- FUNCTION: public.FRQ_insert_user(uuid, character varying)
+
+-- DROP FUNCTION public.FRQ_insert_user(uuid, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_insert_user(
+	fuid uuid,
+	fusername character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_id INTEGER;
+BEGIN
+    INSERT INTO public.userweb (usr_uid, usr_username) VALUES (fuid, fusername) RETURNING ID into ret_id;
+	return ret_id;
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_insert_user(uuid, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------
+
+-- FUNCTION: public.FRQ_update_user(integer, uuid, character varying)
+
+-- DROP FUNCTION public.FRQ_update_user(integer, uuid, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_user(
+	fid integer,
+    fuid uuid,
+	fusername character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.userweb 
+	SET  usr_uid = fuid, 
+         usr_username = fusername
+	WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count;
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_user(integer, uuid, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE------------------------
+-- FUNCTION: public.FRQ_delete_user(integer)
+
+-- DROP FUNCTION public.FRQ_delete_user(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_user(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+    declare  count integer;
+BEGIN   
+	delete from public.userweb u where u.id = fid;
+	GET DIAGNOSTICS count = ROW_COUNT;
+	return count;  	   
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_delete_user(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by ID ------------------------
+
+-- FUNCTION: public.FRQ_get_user(integer)
+
+-- DROP FUNCTION public.FRQ_get_user(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_user(
+	fid integer)
+    RETURNS table("id" integer, uid uuid, username varchar)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select u.ID, u.usr_uid, u.usr_username from public.userweb u where u.id = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_user(integer)
+    OWNER TO brgzbqcf;
+
+
+------------------------GET by UUID------------------------
+
+-- FUNCTION: public.FRQ_get_user(uuid)
+
+-- DROP FUNCTION public.FRQ_get_user(uuid);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_user(
+	fuid uuid)
+    RETURNS table("id" integer, uid uuid, username varchar)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+    return query select u.ID, u.usr_uid, u.usr_username from public.userweb u where u.usr_uid = fuid;	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_user(uuid)
+    OWNER TO brgzbqcf;
+------------------------------------------------------------------------------------------------
+
+/***********************************************/
+/*                      Person                 */
+/***********************************************/
+
+------------------------INSERT------------------------
+
+-- FUNCTION: public.FRQ_insert_person(integer, character varying)
+
+-- DROP FUNCTION public.FRQ_insert_person(integer, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_insert_person(
+	fuserid integer,
+	freference character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_id INTEGER;
+BEGIN
+    INSERT INTO public.person (usr_id, prs_reference) VALUES (fuserid, freference) RETURNING ID into ret_id;
+	return ret_id;
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_insert_person(integer, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------
+
+-- FUNCTION: public.FRQ_update_person(integer, integer, character varying)
+
+-- DROP FUNCTION public.FRQ_update_person(integer, integer, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_person(
+    fid integer,
+	fuserid integer,
+	freference character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.person 
+	    SET  usr_id = fuserid, 
+             prs_reference = freference
+	    WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count; 
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_person(integer, integer, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE------------------------
+-- FUNCTION: public.FRQ_delete_person(integer)
+
+-- DROP FUNCTION public.FRQ_delete_person(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_person(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+    declare  count integer;
+BEGIN   
+	   delete from public.person p where p.id = fid;
+	   GET DIAGNOSTICS count = ROW_COUNT;
+	   return count;  	   
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_delete_person(integer)
+    OWNER TO brgzbqcf;
+	
+------------------------GET by ID------------------------
+
+-- FUNCTION: public.FRQ_get_person(integer)
+
+-- DROP FUNCTION public.FRQ_get_person(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_person(
+	fid integer)
+    RETURNS table("id" integer, userid integer, reference varchar)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select p.id, p.usr_id, p.prs_reference from public.person p where p.id = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_person(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by user------------------------
+
+-- FUNCTION: public.FRQ_get_person_by_user(integer)
+
+-- DROP FUNCTION public.FRQ_get_person_by_user(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_person_by_user(
+	fid integer)
+    RETURNS table("id" integer, userid integer, reference varchar)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select p.id, p.usr_id, p.prs_reference from public.person p where p.usr_id = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_person_by_user(integer)
+    OWNER TO brgzbqcf;
+
+
+------------------------------------------------------------------------
+
+/***********************************************/
+/*                     Form                    */
+/***********************************************/
+------------------------INSERT------------------------
+
+-- FUNCTION: public.frq_insert_form(character varying, character varying, bool)
+
+-- DROP FUNCTION public.frq_insert_form(character varying, character varying, bool);
+
+CREATE OR REPLACE FUNCTION public.frq_insert_form(
+	fname character varying,
+	fdescription character varying,
+	factive bool)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_id INTEGER;
+BEGIN
+    INSERT INTO public.form (frm_name, frm_description, frm_active) VALUES (fname, fdescription, factive) RETURNING ID into ret_id;
+	return ret_id;END
+$BODY$;
+
+ALTER FUNCTION public.frq_insert_form(character varying, character varying, bool)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------    
+-- FUNCTION: public.FRQ_update_form(integer,  character varying, character varying, bool)
+
+-- DROP FUNCTION public.FRQ_update_form(integer,  character varying, character varying, bool);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_form(
+    fid integer,
+	fname character varying,
+	fdescription character varying, 
+    factive bool    )
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.form 
+	    SET  frm_name = fname, 
+             frm_description = fdescription
+	    WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count; 
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_form(integer, character varying, character varying, bool)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE---------------------------------------------
+-- FUNCTION: public.FRQ_delete_form(integer)
+
+-- DROP FUNCTION public.FRQ_delete_form(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_form(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+    declare  count integer;
+BEGIN   
+	   delete from public.form f where f.id = fid;
+	   GET DIAGNOSTICS count = ROW_COUNT;
+	   return count;  	   
+END
+$BODY$;
+
+
+ALTER FUNCTION public.FRQ_delete_form(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by ID------------------------
+-- FUNCTION: public.FRQ_get_form(integer)
+
+-- DROP FUNCTION public.FRQ_get_form(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_form(
+	fid integer)
+    RETURNS table("id" integer, name varchar, description varchar, active boolean)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select f.ID, frm_name, f.frm_description, f.frm_active from public.form f where f.ID = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_form(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET ALL------------------------
+-- FUNCTION: public.FRQ_get_forms()
+
+-- DROP FUNCTION public.FRQ_get_forms();
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_forms()
+    RETURNS table("id" integer, name varchar, description varchar, active boolean)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select f.ID, frm_name, f.frm_description, f.frm_active from public.form f;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_forms()
+    OWNER TO brgzbqcf;
+
+------------------------------------------------------------------------
+
+/***********************************************/
+/*                     QuestionType            */
+/***********************************************/
+------------------------INSERT------------------------
+
+-- FUNCTION: public.frq_insert_questiontype(character varying, character varying)
+
+-- DROP FUNCTION public.frq_insert_questiontype(character varying, character varying);
+
+CREATE OR REPLACE FUNCTION public.frq_insert_questiontype(
+	fname character varying,
+	fdescription character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare ret_id integer;
+BEGIN
+    INSERT INTO public.question_type (qty_name, qty_description) VALUES (fname, fdescription) returning ID into ret_id;
+	return ret_id;
+END
+$BODY$;
+
+ALTER FUNCTION public.frq_insert_questiontype(character varying, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------
+-- FUNCTION: public.FRQ_update_questiontype(integer,  character varying, character varying)
+
+-- DROP FUNCTION public.FRQ_update_questiontype(integer,  character varying, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_questiontype(
+    fid integer,
+	fname character varying,
+	fdescription character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.question_type 
+	    SET  qty_name = fname, 
+             qty_description = fdescription
+	    WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count; 
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_questiontype(integer, character varying, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE------------------------
+-- FUNCTION: public.FRQ_delete_questiontype(integer)
+
+-- DROP FUNCTION public.FRQ_delete_questiontype(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_questiontype(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+    declare  count integer;
+BEGIN   
+	   delete from public.question_type q where q.id = fid;
+	   GET DIAGNOSTICS count = ROW_COUNT;
+	   return count;  	   
+END
+$BODY$;
+
+
+ALTER FUNCTION public.FRQ_delete_questiontype(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by ID------------------------
+
+-- FUNCTION: public.FRQ_get_questiontype(integer)
+
+-- DROP FUNCTION public.FRQ_get_questiontype(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_questiontype(
+	fid integer)
+     RETURNS table("id" integer, name varchar, description varchar )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select q.ID, q.qty_name, q.qty_description from public.question_type q where q.ID = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_questiontype(integer)
+    OWNER TO brgzbqcf;
+	
+------------------------GET ALL------------------------
+
+-- FUNCTION: public.FRQ_get_questiontypes()
+
+-- DROP FUNCTION public.FRQ_get_questiontypes();
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_questiontypes()
+    RETURNS table("id" integer, name varchar, description varchar )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select q.ID, q.qty_name, q.qty_description from public.question_type q;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_questiontypes()
+    OWNER TO brgzbqcf;
+
+------------------------------------------------------------------------
+
+/***********************************************/
+/*                     Question                */
+/***********************************************/
+
+------------------------INSERT------------------------
+
+-- FUNCTION: public.FRQ_insert_question(integer, character varying, character varying)
+
+-- DROP FUNCTION public.FRQ_insert_question(integer, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_insert_question(
+	ftypeid integer,
+	fname character varying,
+	fquestion character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_id INTEGER;
+BEGIN
+    INSERT INTO public.question (qty_id, que_name, que_question) VALUES (ftypeid, fname, fquestion) RETURNING ID into ret_id;
+	return ret_id;
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_insert_question(integer, character varying, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------
+-- FUNCTION: public.FRQ_update_question(integer, integer, character varying, character varying);
+
+-- DROP FUNCTION public.FRQ_update_question(integer, integer, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_question(
+    fid integer,
+    ftypeid integer,
+	fname character varying,
+	fquestion character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.question 
+	    SET  qty_id = ftypeid,
+             que_name = fname, 
+             que_question = fquestion
+	    WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count; 
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_question(integer, integer, character varying, character varying)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE------------------------
+-- FUNCTION: public.FRQ_delete_question(integer)
+
+-- DROP FUNCTION public.FRQ_delete_question(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_question(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+    declare  count integer;
+BEGIN   
+	   delete from public.question q where q.id = fid;
+	   GET DIAGNOSTICS count = ROW_COUNT;
+	   return count;  	   
+END
+$BODY$;
+
+
+ALTER FUNCTION public.FRQ_delete_question(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by ID------------------------
+
+-- FUNCTION: public.FRQ_get_question(integer)
+
+-- DROP FUNCTION public.FRQ_get_question(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_question(
+	fid integer)
+    RETURNS table("id" integer, qty_id integer, name varchar, question varchar )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select q.ID, q.qty_id, q.que_name, q.que_question from public.question q where q.ID = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_question(integer)
+    OWNER TO brgzbqcf;
+	
+------------------------GET ALL------------------------
+-- FUNCTION: public.FRQ_get_questions()
+
+-- DROP FUNCTION public.FRQ_get_questions();
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_questions()
+    RETURNS table("id" integer, qty_id integer, name varchar, question varchar )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select q.ID, q.qty_id, q.que_name, q.que_question from public.question q;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_questions()
+    OWNER TO brgzbqcf;
+
+------------------------------------------------------------------------
+
+/***********************************************/
+/*                     QuestionValue           */
+/***********************************************/
+
+------------------------INSERT------------------------
+
+-- FUNCTION: public.FRQ_insert_questionvalue(integer, character varying, character varying, integer)
+
+-- DROP FUNCTION public.FRQ_insert_questionvalue(integer, character varying, character varying, integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_insert_questionvalue(
+	fquestionid integer,
+	fname character varying,
+	fdescription character varying,
+    fvalue integer)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_id INTEGER;
+BEGIN
+    INSERT INTO public.question_value (que_id, val_name, val_description, val_value) VALUES (fquestionid, fname, fdescription, fvalue) RETURNING ID into ret_id;
+	return ret_id;
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_insert_questionvalue(integer, character varying, character varying, integer)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------
+-- FUNCTION: public.FRQ_update_questionvalue(integer, integer, character varying, character varying, integer);
+
+-- DROP FUNCTION public.FRQ_update_questionvalue(integer, integer, character varying, character varying, integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_questionvalue(
+    fid integer,
+    fquestionid integer,
+	fname character varying,
+	fdescription character varying,
+    fvalue integer)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.question_value 
+	    SET  que_id = fquestionid, 
+             val_name = fname, 
+             val_description = fdescription, 
+             val_value = fvalue
+	    WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count; 
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_questionvalue(integer, integer, character varying, character varying, integer)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE------------------------
+-- FUNCTION: public.FRQ_delete_questionvalue(integer)
+
+-- DROP FUNCTION public.FRQ_delete_questionvalue(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_questionvalue(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+   declare  count integer;
+BEGIN   
+	   delete from public.question_value q where q.id = fid;
+	   GET DIAGNOSTICS count = ROW_COUNT;
+	   return count;  	   
+END
+$BODY$;
+
+
+ALTER FUNCTION public.FRQ_delete_questionvalue(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by ID------------------------
+
+-- FUNCTION: public.FRQ_get_questionvalue(integer)
+
+-- DROP FUNCTION public.FRQ_get_questionvalue(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_questionvalue(
+	fid integer)
+    RETURNS table("id" integer, que_id integer, name varchar, description varchar, value integer )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select q.ID, q.que_id, q.val_name, q.val_description, q.val_value from public.question_value q where q.ID = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_questionvalue(integer)
+    OWNER TO brgzbqcf;
+	
+------------------------GET by question------------------------
+
+-- FUNCTION: public.FRQ_get_questionvalue_by_question(integer)
+
+-- DROP FUNCTION public.FRQ_get_questionvalue_by_question(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_questionvalue_by_question(
+	fquestionid integer)
+    RETURNS table("id" integer, que_id integer, name varchar, description varchar, value integer )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select q.ID, q.que_id, q.val_name, q.val_description, q.val_value from public.question_value q where q.que_id = fquestionid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_questionvalue_by_question(integer)
+    OWNER TO brgzbqcf;
+    
+------------------------------------------------------------------------
+
+/***********************************************/
+/*                     FormQuestion            */
+/***********************************************/
+
+------------------------INSERT------------------------
+
+-- FUNCTION: public.FRQ_insert_formquestion(integer, integer, integer, integer, integer)
+
+-- DROP FUNCTION public.FRQ_insert_formquestion(integer, integer, integer, integer, integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_insert_formquestion(
+	fformid integer,
+	fquestionid integer,
+	forder integer,
+	fnext integer,
+	falternativenext integer
+	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_id INTEGER;
+BEGIN
+    INSERT INTO public.form_question (frm_id, que_id, frq_order, frq_next, frq_alternative_next) VALUES (fformid, fquestionid, forder, fnext, falternativenext ) RETURNING ID into ret_id;
+	return ret_id;
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_insert_formquestion(integer, integer, integer, integer, integer)
+    OWNER TO brgzbqcf;
+
+------------------------UPDATE------------------------
+-- FUNCTION: public.FRQ_update_formquestion(integer, integer, integer, integer, integer, integer);
+
+-- DROP FUNCTION public.FRQ_update_formquestion(integer, integer, integer, integer, integer, integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_update_formquestion(
+    fid integer,
+    fformid integer,
+	fquestionid integer,
+	forder integer,
+	fnext integer,
+	falternativenext integer)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+declare  ret_count INTEGER;
+BEGIN
+    UPDATE public.form_question
+	    SET  frm_id = fformid,
+	         que_id = fquestionid,
+	         frq_order = forder,
+	         frq_next = fnext,
+	         frq_alternative_next = falternativenext
+	    WHERE id = fid;
+    GET DIAGNOSTICS ret_count = ROW_COUNT;
+	return ret_count; 
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_update_formquestion(integer, integer, integer, integer, integer, integer)
+    OWNER TO brgzbqcf;
+
+------------------------DELETE------------------------
+-- FUNCTION: public.FRQ_delete_formquestion(integer)
+
+-- DROP FUNCTION public.FRQ_delete_formquestion(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_delete_formquestion(
+	fid integer	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$   
+    declare  count integer;
+BEGIN   
+	   delete from public.form_question f where f.id = fid;
+	   GET DIAGNOSTICS count = ROW_COUNT;
+	   return count;  	   
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_delete_formquestion(integer)
+    OWNER TO brgzbqcf;
+
+------------------------GET by ID------------------------
+-- FUNCTION: public.FRQ_get_formquestion(integer)
+
+-- DROP FUNCTION public.FRQ_get_formquestion(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_formquestion(
+	fid integer)
+    RETURNS table("id" integer, formid integer, questionid integer, "order" integer, next integer, alternativenext integer )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select f.ID, f.frm_id, f.que_id, f.frq_order, f.frq_next, f.frq_alternative_next from public.form_question f where f.id = fid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_formquestion(integer)
+    OWNER TO brgzbqcf;
+------------------------GET by form------------------------
+-- FUNCTION: public.FRQ_get_formquestion_by_form(integer)
+
+-- DROP FUNCTION public.FRQ_get_formquestion_by_form(integer);
+
+CREATE OR REPLACE FUNCTION public.FRQ_get_formquestion_by_form(
+	fformid integer)
+    RETURNS table("id" integer, formid integer, questionid integer, "order" integer, next integer, alternativenext integer )
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+   return query  select f.ID, f.frm_id, f.que_id, f.frq_order, f.frq_next, f.frq_alternative_next from public.form_question f where f.frm_id = fformid;
+	
+END
+$BODY$;
+
+ALTER FUNCTION public.FRQ_get_formquestion_by_form(integer)
+    OWNER TO brgzbqcf;
+
+------------------------------------------------------------------------
+
+
+end
